@@ -510,6 +510,190 @@
             box-shadow: 0 6px 20px rgba(139, 69, 19, 0.5);
         }
 
+        .achievements-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(218, 165, 32, 0.5);
+        }
+
+        /* تصميم نظام الإنجازات */
+        .achievements-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 14, 8, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .achievements-modal.show {
+            opacity: 1;
+        }
+
+        .achievements-content {
+            background: linear-gradient(135deg, #3d2312, #4a2c17, #6b3418);
+            border: 3px solid #DAA520;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(218, 165, 32, 0.3);
+        }
+
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 15px;
+        }
+
+        .achievements-header h2 {
+            color: #DAA520;
+            font-size: 2rem;
+            margin: 0;
+            text-shadow: 0 0 15px #FFD700;
+        }
+
+        .achievements-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .achievement-item {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.3), rgba(160, 82, 45, 0.2));
+            border: 2px solid #8b4513;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .achievement-item.completed {
+            border-color: #DAA520;
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.2), rgba(255, 215, 0, 0.1));
+            box-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
+        }
+
+        .achievement-item.in-progress {
+            border-color: #4169E1;
+            background: linear-gradient(135deg, rgba(65, 105, 225, 0.2), rgba(70, 130, 180, 0.1));
+        }
+
+        .achievement-item.locked {
+            opacity: 0.6;
+            border-color: #696969;
+        }
+
+        .achievement-icon {
+            font-size: 3rem;
+            min-width: 80px;
+            text-align: center;
+            filter: brightness(0.9);
+        }
+
+        .achievement-item.completed .achievement-icon {
+            filter: brightness(1.2) drop-shadow(0 0 10px #FFD700);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .achievement-info {
+            flex: 1;
+            text-align: right;
+        }
+
+        .achievement-info h3 {
+            color: #f4e4bc;
+            margin: 0 0 8px 0;
+            font-size: 1.3rem;
+        }
+
+        .achievement-info p {
+            color: #D2691E;
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+        }
+
+        .progress-bar {
+            background: #2c1810;
+            border: 2px solid #8b4513;
+            border-radius: 10px;
+            height: 12px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #DAA520, #FFD700);
+        }
+
+        .achievement-item.completed .progress-fill {
+            background: linear-gradient(90deg, #32CD32, #00FF00);
+        }
+
+        .progress-text {
+            color: #f4e4bc;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .achievement-reward {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .reward-gold {
+            color: #DAA520;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .reward-gems {
+            color: #9370DB;
+            font-weight: 600;
+        }
+
+        /* تحسينات بصرية عند الترقية */
+        .building.upgraded {
+            animation: upgradeGlow 1s ease-out;
+        }
+
+        @keyframes upgradeGlow {
+            0% { box-shadow: 0 0 20px #FFD700; }
+            100% { box-shadow: 0 0 0px rgba(255, 215, 0, 0); }
+        }
+
+        .resource-gained {
+            animation: resourceGlow 1.5s ease-out;
+        }
+
+        @keyframes resourceGlow {
+            0% { color: #32CD32; transform: scale(1.1); }
+            100% { color: #f4e4bc; transform: scale(1); }
+        }
+
         .stats-title {
             font-size: 1.1rem;
             font-weight: 700;
@@ -1042,10 +1226,13 @@
                             // إظهار إشعار الترحيب
                             showNotification('مرحباً بك في إمبراطوريتك! 🏰', 3000);
                             
-                            // إضافة زر الاستكشاف
+                            // تهيئة نظام الإنجازات
+                            initializeAchievements();
+                            
+                            // إضافة زر الاستكشاف والإنجازات
                             setTimeout(() => {
                                 addExploreButton();
-                                showNotification('تم فتح نظام الاستكشاف! 🗺️ جرب الضغط على زر الاستكشاف', 5000);
+                                showNotification('تم فتح نظام الاستكشاف والإنجازات! 🗺️🏆 جرب الضغط على الأزرار', 5000);
                             }, 2000);
                             
                             gameState.loadingComplete = true;
@@ -1115,7 +1302,7 @@
                 generateResourceFromBuilding(building);
             }
 
-            // إشعارات تفاعلية
+            // إشعارات تفاعلية مع تتبع الإنجازات
             const messages = {
                 'main': 'تم تعزيز موارد الإمبراطورية! 📈',
                 'resource': `تم جمع ${building.production}! 💰`,
@@ -1126,6 +1313,14 @@
             };
 
             showNotification(messages[building.category] || 'تم التحديث! ✨', 2000);
+            
+            // إضافة تأثير بصري
+            addVisualEffect(element, 'upgrade');
+            
+            // فحص الإنجازات
+            setTimeout(() => {
+                checkAchievements();
+            }, 1000);
         }
 
         // إظهار معلومات المبنى
@@ -1189,7 +1384,14 @@
             setInterval(() => {
                 if (gameState.loadingComplete) {
                     // تجديد الطاقة
+                    const oldEnergy = gameState.energy;
                     gameState.energy = Math.min(100, gameState.energy + 0.5);
+                    const energyGained = gameState.energy - oldEnergy;
+                    
+                    if (energyGained > 0) {
+                        gameState.energyConsumed = (gameState.energyConsumed || 0) + energyGained;
+                    }
+                    
                     updateResourceDisplay('energy', Math.floor(gameState.energy));
                     
                     // زيادة السكان تدريجياً
@@ -1197,6 +1399,9 @@
                         gameState.population += Math.floor(Math.random() * 10 + 1);
                         updateResourceDisplay('population', gameState.population);
                     }
+                    
+                    // فحص الإنجازات
+                    checkAchievements();
                 }
             }, 5000);
         }
@@ -1237,6 +1442,17 @@
 
         // بدء اللعبة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', initGame);
+
+        // تهيئة قيم الإنجازات
+        function initializeAchievements() {
+            if (!gameState.battlesWon) gameState.battlesWon = 0;
+            if (!gameState.energyConsumed) gameState.energyConsumed = 0;
+            if (!gameState.researchCompleted) gameState.researchCompleted = 0;
+            if (!gameState.empireLevel) gameState.empireLevel = 47;
+            
+            // تحميل الإنجازات المحفوظة
+            playerAchievements = JSON.parse(localStorage.getItem('empireAchievements') || '[]');
+        }
 
         // إضافة تأثيرات صوتية (يمكن تفعيلها لاحقاً)
         function playSound(type) {
@@ -1369,6 +1585,9 @@
                 updateResourceDisplay('gems', gameState.gems);
                 updateResourceDisplay('troops', gameState.troops);
                 
+                // تحديث إحصائيات المعارك
+                gameState.battlesWon = (gameState.battlesWon || 0) + 1;
+                
                 showNotification(`انتصار! ✅，获得了 ${currentBattle.enemy.reward.gold} ذهب و ${currentBattle.enemy.reward.gems} حجر كريم!`, 5000);
                 
             } else {
@@ -1429,16 +1648,25 @@
             currentBattle = null;
         }
 
-        // إضافة زر الاستكشاف
+        // إضافة زر الاستكشاف ومتجر الإنجازات
         function addExploreButton() {
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 100;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            `;
+
+            // زر الاستكشاف
             const exploreButton = document.createElement('button');
             exploreButton.className = 'explore-btn';
             exploreButton.textContent = '🗺️ استكشاف العالم';
             exploreButton.onclick = exploreWorld;
             exploreButton.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 20px;
                 background: linear-gradient(135deg, #8B4513, #A0522D);
                 color: #f4e4bc;
                 border: 2px solid #D2691E;
@@ -1447,7 +1675,6 @@
                 font-family: 'Tajawal', sans-serif;
                 font-weight: 600;
                 cursor: pointer;
-                z-index: 100;
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
             `;
@@ -1461,8 +1688,166 @@
                 exploreButton.style.transform = 'scale(1)';
                 exploreButton.style.boxShadow = '0 4px 15px rgba(139, 69, 19, 0.3)';
             });
+
+            // زر الإنجازات
+            const achievementsButton = document.createElement('button');
+            achievementsButton.className = 'achievements-btn';
+            achievementsButton.textContent = '🏆 الإنجازات';
+            achievementsButton.onclick = showAchievements;
+            achievementsButton.style.cssText = `
+                background: linear-gradient(135deg, #DAA520, #B8860B);
+                color: #f4e4bc;
+                border: 2px solid #FFD700;
+                border-radius: 10px;
+                padding: 12px 20px;
+                font-family: 'Tajawal', sans-serif;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(218, 165, 32, 0.3);
+            `;
             
-            document.body.appendChild(exploreButton);
+            achievementsButton.addEventListener('mouseenter', () => {
+                achievementsButton.style.transform = 'scale(1.05)';
+                achievementsButton.style.boxShadow = '0 6px 20px rgba(218, 165, 32, 0.5)';
+            });
+            
+            achievementsButton.addEventListener('mouseleave', () => {
+                achievementsButton.style.transform = 'scale(1)';
+                achievementsButton.style.boxShadow = '0 4px 15px rgba(218, 165, 32, 0.3)';
+            });
+
+            container.appendChild(exploreButton);
+            container.appendChild(achievementsButton);
+            document.body.appendChild(container);
+        }
+
+        // نظام الإنجازات الجديد
+        const achievements = [
+            {id: 1, name: '🏗️ رئيس البناء', description: 'بني 10 مباني', target: 10, current: 0, reward: {gold: 1000, gems: 5}, type: 'buildings'},
+            {id: 2, name: '💰 جامع الذهب', description: 'اجمع 100,000 ذهب', target: 100000, current: 0, reward: {gold: 5000, gems: 10}, type: 'gold'},
+            {id: 3, name: '⚔️ محارب قديم', description: 'اكسب 50 معركة', target: 50, current: 0, reward: {gold: 2000, gems: 15}, type: 'battles'},
+            {id: 4, name: '👥 راعي الشعوب', description: 'صل إلى 50,000 نسمة', target: 50000, current: 0, reward: {gold: 3000, gems: 8}, type: 'population'},
+            {id: 5, name: '⚡ مالك الطاقة', description: 'استهلك 10,000 طاقة', target: 10000, current: 0, reward: {gold: 1500, gems: 12}, type: 'energy'},
+            {id: 6, name: '🏰 إمبراطور عظيم', description: 'اصل إلى المستوى 100', target: 100, current: 0, reward: {gold: 10000, gems: 50}, type: 'level'},
+            {id: 7, name: '🔬 باحث حكيم', description: 'أكمل 20 بحث', target: 20, current: 0, reward: {gold: 2500, gems: 20}, type: 'research'},
+            {id: 8, name: '⚔️ صائد التنانين', description: 'اهزم إمبراطور الظلام', target: 1, current: 0, reward: {gold: 25000, gems: 100}, type: 'boss'},
+            {id: 9, name: '🌟 نجم الإمبراطورية', description: 'ادرس 5,000 جندي', target: 5000, current: 0, reward: {gold: 4000, gems: 25}, type: 'troops'},
+            {id: 10, name: '💎 جامع الأحجار', description: 'اجمع 500 حجر كريم', target: 500, current: 0, reward: {gold: 6000, gems: 75}, type: 'gems'}
+        ];
+
+        let playerAchievements = JSON.parse(localStorage.getItem('empireAchievements') || '[]');
+
+        function showAchievements() {
+            const modal = createAchievementsModal();
+            document.body.appendChild(modal);
+            
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 100);
+        }
+
+        function createAchievementsModal() {
+            const modal = document.createElement('div');
+            modal.className = 'achievements-modal';
+            
+            let achievementsHTML = '<div class="achievements-content">';
+            achievementsHTML += '<div class="achievements-header">';
+            achievementsHTML += '<h2>🏆 إنجازات الإمبراطورية</h2>';
+            achievementsHTML += '<button onclick="closeAchievements()" class="close-btn">✖️</button>';
+            achievementsHTML += '</div>';
+            achievementsHTML += '<div class="achievements-list">';
+            
+            achievements.forEach(achievement => {
+                const isCompleted = playerAchievements.includes(achievement.id);
+                const progress = Math.min(100, (achievement.current / achievement.target) * 100);
+                const status = isCompleted ? 'completed' : (progress > 0 ? 'in-progress' : 'locked');
+                
+                achievementsHTML += `
+                    <div class="achievement-item ${status}">
+                        <div class="achievement-icon">${achievement.name.split(' ')[0]}</div>
+                        <div class="achievement-info">
+                            <h3>${achievement.name.split(' ').slice(1).join(' ')}</h3>
+                            <p>${achievement.description}</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="progress-text">${achievement.current} / ${achievement.target}</span>
+                        </div>
+                        <div class="achievement-reward">
+                            <div class="reward-gold">${achievement.reward.gold} ذهب</div>
+                            <div class="reward-gems">${achievement.reward.gems} جوهرة</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            achievementsHTML += '</div></div>';
+            modal.innerHTML = achievementsHTML;
+            return modal;
+        }
+
+        function closeAchievements() {
+            const modal = document.querySelector('.achievements-modal');
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.remove();
+                }, 300);
+            }
+        }
+
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (playerAchievements.includes(achievement.id)) return;
+                
+                let current = 0;
+                switch(achievement.type) {
+                    case 'buildings':
+                        current = gameState.buildings.length;
+                        break;
+                    case 'gold':
+                        current = gameState.gold;
+                        break;
+                    case 'battles':
+                        current = gameState.battlesWon || 0;
+                        break;
+                    case 'population':
+                        current = gameState.population;
+                        break;
+                    case 'energy':
+                        current = gameState.energyConsumed || 0;
+                        break;
+                    case 'level':
+                        current = gameState.empireLevel || 1;
+                        break;
+                    case 'research':
+                        current = gameState.researchCompleted || 0;
+                        break;
+                    case 'troops':
+                        current = gameState.troops;
+                        break;
+                    case 'gems':
+                        current = gameState.gems;
+                        break;
+                }
+                
+                achievement.current = current;
+                
+                if (current >= achievement.target) {
+                    // إنجاز جديد!
+                    playerAchievements.push(achievement.id);
+                    localStorage.setItem('empireAchievements', JSON.stringify(playerAchievements));
+                    
+                    // منح المكافآت
+                    gameState.gold += achievement.reward.gold;
+                    gameState.gems += achievement.reward.gems;
+                    updateResourceDisplay('gold', gameState.gold);
+                    updateResourceDisplay('gems', gameState.gems);
+                    
+                    showNotification(`🏆 إنجاز جديد: ${achievement.name}!`, 5000);
+                }
+            });
         }
 
         // تأثيرات المؤثرات البصرية
