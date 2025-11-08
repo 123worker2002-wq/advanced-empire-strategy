@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗡️ الإمبراطورية الاستراتيجية - War Empire</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #4a2c17 25%, #6b3418 50%, #3d2312 75%, #1a0e08 100%);
+            color: #f4e4bc;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        /* شاشة التحميل المتقدمة */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a0e08 0%, #3d2312 50%, #6b3418 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease-out;
+        }
+
+        .loading-title {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 30px #ff8c00, 0 0 60px #ff8c00;
+            margin-bottom: 30px;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+
+        .loading-subtitle {
+            font-size: 1.2rem;
+            color: #d4af37;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .progress-container {
+            width: 80%;
+            max-width: 500px;
+            height: 20px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #d4af37;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ffd700, #ff8c00);
+            border-radius: 25px;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 30px #ff8c00, 0 0 60px #ff8c00; }
+            100% { text-shadow: 0 0 50px #ffd700, 0 0 80px #ffd700, 0 0 100px #ff8c00; }
+        }
+
+        /* شريط الموارد العلوي المخفي */
+        .resource-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(26, 14, 8, 0.9);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            opacity: 0;
+            transform: translateY(-100px);
+            transition: all 0.8s ease;
+            z-index: 100;
+        }
+
+        .resource-bar.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .empire-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ff8c00;
+        }
+
+        .resources {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .resource-icon {
+            font-size: 1.2rem;
+        }
+
+        .resource-value {
+            color: #f4e4bc;
+        }
+
+        /* منطقة الإمبراطورية */
+        .empire-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-top: 80px;
+        }
+
+        /* شبكة الإمبراطورية */
+        .empire-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 15px;
+            width: 90%;
+            max-width: 1200px;
+            height: 70vh;
+            max-height: 700px;
+            position: relative;
+        }
+
+        /* المباني المخفية في البداية */
+        .building {
+            background: linear-gradient(135deg, #6b3418, #3d2312);
+            border: 3px solid #8b4513;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: scale(0.8);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .building.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .building:hover {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            transform: scale(1.05);
+        }
+
+        .building-inner {
+            padding: 20px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .building-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .building:hover .building-icon {
+            transform: scale(1.1);
+        }
+
+        .building-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+
+        .building-level {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #8b4513;
+            color: #ffd700;
+            border: 2px solid #d4af37;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .building-status {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #90ee90;
+        }
+
+        .building-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 0.7rem;
+            color: #f4e4bc;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .building:hover .building-info {
+            opacity: 1;
+        }
+
+        /* المبنى الرئيسي في المركز */
+        .main-building {
+            grid-column: 3;
+            grid-row: 3;
+            background: linear-gradient(135deg, #b8860b, #daa520);
+            border: 4px solid #ffd700;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .main-building .building-inner {
+            background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
+        }
+
+        /* تأثيرات خاصة */
+        .resource-building {
+            border-color: #32cd32;
+        }
+
+        .military-building {
+            border-color: #ff4500;
+        }
+
+        .defense-building {
+            border-color: #1e90ff;
+        }
+
+        .research-building {
+            border-color: #9370db;
+        }
+
+        /* إحصائيات الإمبراطورية */
+        .empire-stats {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(26, 14, 8, 0.9);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.8s ease;
+        }
+
+        .empire-stats.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .stats-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stat-label {
+            color: #d4af37;
+        }
+
+        .stat-value {
+            color: #f4e4bc;
+            font-weight: 600;
+        }
+
+        /* ألوان خاصة للمباني */
+        .power-station { background: linear-gradient(135deg, #4169e1, #1e90ff); }
+        .gold-mine { background: linear-gradient(135deg, #daa520, #b8860b); }
+        .palace { background: linear-gradient(135deg, #8b008b, #da70d6); }
+        .military-camp { background: linear-gradient(135deg, #8b0000, #ff4500); }
+        .research-lab { background: linear-gradient(135deg, #483d8b, #6a5acd); }
+        .market { background: linear-gradient(135deg, #2e8b57, #32cd32); }
+        .temple { background: linear-gradient(135deg, #b8860b, #daa520); }
+        .tower { background: linear-gradient(135deg, #2f4f4f, #696969); }
+        .hospital { background: linear-gradient(135deg, #dc143c, #ff69b4); }
+        .factory { background: linear-gradient(135deg, #2f4f4f, #708090); }
+        .barracks { background: linear-gradient(135deg, #800000, #cd5c5c); }
+        .academy { background: linear-gradient(135deg, #191970, #4169e1); }
+        .watchtower { background: linear-gradient(135deg, #8b4513, #d2691e); }
+        .forge { background: linear-gradient(135deg, #8b0000, #b22222); }
+        .stable { background: linear-gradient(135deg, #8b4513, #a0522d); }
+        .training-ground { background: linear-gradient(135deg, #228b22, #32cd32); }
+        .armory { background: linear-gradient(135deg, #2f4f4f, #696969); }
+        .gate { background: linear-gradient(135deg, #800000, #cd5c5c); }
+        .wall { background: linear-gradient(135deg, #2f4f4f, #708090); }
+        .tower-defense { background: linear-gradient(135deg, #483d8b, #6a5acd); }
+        .harbor { background: linear-gradient(135deg, #191970, #4169e1); }
+        .warehouse { background: linear-gradient(135deg, #8b4513, #d2691e); }
+        .workshop { background: linear-gradient(135deg, #8b0000, #b22222); }
+        .observatory { background: linear-gradient(135deg, #191970, #4169e1); }
+        .library { background: linear-gradient(135deg, #2e8b57, #32cd32); }
+
+        /* إشعارات خفية */
+        .notification {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 14, 8, 0.95);
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 15px 25px;
+            color: #f4e4bc;
+            font-size: 1rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            opacity: 0;
+            transform: translate(-50%, -50px);
+            transition: all 0.5s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* تأثيرات النقر */
+        .building.clicked {
+            animation: buildingClick 0.5s ease;
+        }
+
+        @keyframes buildingClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* تحسينات للشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .empire-grid {
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: repeat(6, 1fr);
+                gap: 10px;
+            }
+            
+            .building-icon {
+                font-size: 2rem;
+            }
+            
+            .resource-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .resources {
+                gap: 15px;
+            }
+            
+            .loading-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* تأثيرات متقدمة */
+        .building::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ffd700, #ff8c00, #ffd700);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .building:hover::before {
+            opacity: 0.3;
+            animation: borderGlow 2s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0% { background: linear-gradient(0deg, #ffd700, #ff8c00, #ffd700); }
+            25% { background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700); }
+            50% { background: linear-gradient(180deg, #ffd700, #ff8c00, #ffd700); }
+            75% { background: linear-gradient(270deg, #ffd700, #ff8c00, #ffd700); }
+            100% { background: linear-gradient(360deg, #ffd700, #ff8c00, #ffd700); }
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة التحميل -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-title">🗡️ الإمبراطورية الاستراتيجية</div>
+        <div class="loading-subtitle">
+            بناء إمبراطوريتك، تدريب جيوشك، وإتقان فن الحرب<br>
+            واربح المعارك، وطور تقنياتك، وكن الأعظم!
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- شريط الموارد -->
+    <div class="resource-bar" id="resourceBar">
+        <div class="empire-name" id="empireName">🏰 إمبراطوريتي العظيمة</div>
+        <div class="resources">
+            <div class="resource-item">
+                <span class="resource-icon">👥</span>
+                <span class="resource-value" id="population">45,000</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">⚡</span>
+                <span class="resource-value" id="energy">100%</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">💰</span>
+                <span class="resource-value" id="gold">250,000</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">⚔️</span>
+                <span class="resource-value" id="troops">15,000</span>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">💎</span>
+                <span class="resource-value" id="gems">1,250</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- منطقة الإمبراطورية -->
+    <div class="empire-container">
+        <div class="empire-grid" id="empireGrid">
+            <!-- المباني ستولد ديناميكياً -->
+        </div>
+    </div>
+
+    <!-- إحصائيات الإمبراطورية -->
+    <div class="empire-stats" id="empireStats">
+        <div class="stats-title">📊 إحصائيات الإمبراطورية</div>
+        <div class="stat-item">
+            <span class="stat-label">المستوى:</span>
+            <span class="stat-value" id="empireLevel">47</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">النقاط:</span>
+            <span class="stat-value" id="empirePoints">285,750</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">الترتيب:</span>
+            <span class="stat-value" id="empireRank">#12</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">المعسكرات:</span>
+            <span class="stat-value" id="camps">8</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">البحث:</span>
+            <span class="stat-value" id="research">18/25</span>
+        </div>
+    </div>
+
+    <!-- الإشعارات -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // متغيرات اللعبة
+        let gameState = {
+            loading: 0,
+            loadingComplete: false,
+            population: 45000,
+            energy: 100,
+            gold: 250000,
+            troops: 15000,
+            gems: 1250,
+            empireName: 'إمبراطوريتي العظيمة',
+            empireLevel: 47,
+            empirePoints: 285750,
+            empireRank: '#12',
+            camps: 8,
+            research: '18/25',
+            buildings: [],
+            resources: {
+                food: 85000,
+                stone: 125000,
+                wood: 95000,
+                iron: 75000
+            }
+        };
+
+        // بيانات المباني الإمبراطورية
+        const buildingTypes = [
+            // المباني الأساسية
+            { 
+                name: '🏰 القصر الذهبي', 
+                type: 'palace', 
+                level: 10, 
+                category: 'main',
+                production: '+500 جند / ساعة',
+                description: 'المقر الرئيسي للإمبراطورية - يزيد من نسبة إنتاج جميع المباني الأخرى',
+                position: { row: 3, col: 3 }
+            },
+            { 
+                name: '⚡ محطة الطاقة', 
+                type: 'power-station', 
+                level: 8, 
+                category: 'resource',
+                production: '+250 طاقة / ساعة',
+                description: ' تنتج الطاقة اللازمة لتشغيل جميع المباني',
+                position: { row: 1, col: 1 }
+            },
+            { 
+                name: '⛏️ منجم الذهب', 
+                type: 'gold-mine', 
+                level: 9, 
+                category: 'resource',
+                production: '+800 ذهب / دقيقة',
+                description: 'ينتج الذهب - العملة الرئيسية للإمبراطورية',
+                position: { row: 2, col: 1 }
+            },
+            { 
+                name: '🏢 السوق الكبرى', 
+                type: 'market', 
+                level: 6, 
+                category: 'trade',
+                production: '+20% معدل التجارة',
+                description: 'يدير تجارة الإمبراطورية ويزيد من سرعة جمع الموارد',
+                position: { row: 1, col: 3 }
+            },
+            { 
+                name: '🏭 مصنع الأسلحة', 
+                type: 'factory', 
+                level: 7, 
+                category: 'military',
+                production: '+150 سلعة عسكرية / ساعة',
+                description: 'ينتج الأسلحة والمعدات العسكرية للجنود',
+                position: { row: 1, col: 5 }
+            },
+
+            // المباني العسكرية
+            { 
+                name: '🏕️ معسكر الفرسان', 
+                type: 'barracks', 
+                level: 6, 
+                category: 'military',
+                production: '+25 فرسان / ساعة',
+                description: 'يدرب الفرسان - وحدات سريعة ومتقدمة',
+                position: { row: 3, col: 1 }
+            },
+            { 
+                name: '🏹 معسكر الرماة', 
+                type: 'barracks', 
+                level: 5, 
+                category: 'military',
+                production: '+30 رماة / ساعة',
+                description: 'يدرب الرماة - وحدات دفاعية قوية',
+                position: { row: 2, col: 5 }
+            },
+            { 
+                name: '⚔️ معسكر المحاربين', 
+                type: 'military-camp', 
+                level: 8, 
+                category: 'military',
+                production: '+20 محاربين / ساعة',
+                description: 'يدرب المحاربين - وحدات هجومية قوية',
+                position: { row: 4, col: 1 }
+            },
+            { 
+                name: '🛡️ معسكر الحراس', 
+                type: 'barracks', 
+                level: 4, 
+                category: 'military',
+                production: '+35 حراس / ساعة',
+                description: 'يدرب الحراس - وحدات دفاعية ممتازة',
+                position: { row: 3, col: 5 }
+            },
+
+            // المباني البحثية
+            { 
+                name: '🔬 معمل الأبحاث', 
+                type: 'research-lab', 
+                level: 7, 
+                category: 'research',
+                production: '+1 بحث / 6 ساعات',
+                description: 'يقوم بالبحث عن تقنيات جديدة ومتقدمة',
+                position: { row: 5, col: 3 }
+            },
+            { 
+                name: '📚 أكاديمية العلوم', 
+                type: 'academy', 
+                level: 5, 
+                category: 'research',
+                production: '+0.5 بحث / 6 ساعات',
+                description: 'تدرس العلوم والتكنولوجيا المتقدمة',
+                position: { row: 4, col: 5 }
+            },
+
+            // المباني الدفاعية
+            { 
+                name: '🗼 برج المراقبة', 
+                type: 'watchtower', 
+                level: 8, 
+                category: 'defense',
+                production: '+200% دفاع',
+                description: 'يحمي الإمبراطورية من الهجمات الخارجية',
+                position: { row: 1, col: 2 }
+            },
+            { 
+                name: '🏰 برج الحصار', 
+                type: 'tower-defense', 
+                level: 6, 
+                category: 'defense',
+                production: '+150% دفاع',
+                description: 'برج دفاعي قوي ضد هجمات الحصار',
+                position: { row: 2, col: 2 }
+            },
+            { 
+                name: '🏢 برج الأمراء', 
+                type: 'tower-defense', 
+                level: 7, 
+                category: 'defense',
+                production: '+180% دفاع',
+                description: 'برج الأمراء - أعلى مستوى دفاعي',
+                position: { row: 1, col: 4 }
+            },
+            { 
+                name: '🛡️ برج الأبطال', 
+                type: 'tower-defense', 
+                level: 5, 
+                category: 'defense',
+                production: '+120% دفاع',
+                description: 'برج الأبطال - يدرب الأبطال الأسطوريين',
+                position: { row: 2, col: 4 }
+            },
+
+            // المباني الإضافية
+            { 
+                name: '🏥 مستشفى الحروب', 
+                type: 'hospital', 
+                level: 6, 
+                category: 'support',
+                production: '+50 جند شفاء / ساعة',
+                description: 'يشفى الجرحى ويعيد الجند للمعارك',
+                position: { row: 4, col: 2 }
+            },
+            { 
+                name: '🏹 مجال التدريب', 
+                type: 'training-ground', 
+                level: 7, 
+                category: 'training',
+                production: '+30% خبرة الجند',
+                description: 'يزيد من خبرة وجودة الجند المدربين',
+                position: { row: 3, col: 4 }
+            },
+            { 
+                name: '🏠 مستودع الإمدادات', 
+                type: 'warehouse', 
+                level: 9, 
+                category: 'storage',
+                production: '+50% سعة التخزين',
+                description: 'يزيد من سعة تخزين الموارد',
+                position: { row: 4, col: 3 }
+            },
+            { 
+                name: '🌊 مرفأ الأساطيل', 
+                type: 'harbor', 
+                level: 5, 
+                category: 'naval',
+                production: '+200 بحار / ساعة',
+                description: 'يبني الأساطيل البحرية للحروب البحرية',
+                position: { row: 4, col: 4 }
+            },
+            { 
+                name: '🏢 ورش التطوير', 
+                type: 'workshop', 
+                level: 6, 
+                category: 'production',
+                production: '+25% كفاءة الإنتاج',
+                description: 'تحسن من كفاءة جميع المباني الإنتاجية',
+                position: { row: 5, col: 1 }
+            },
+            { 
+                name: '🔮 مرصد النجوم', 
+                type: 'observatory', 
+                level: 4, 
+                category: 'exploration',
+                production: '+1 استكشاف / 12 ساعة',
+                description: 'يستكشف العالم ويكتشف مواقع جديدة',
+                position: { row: 5, col: 2 }
+            },
+            { 
+                name: '📖 مكتبة الحكمة', 
+                type: 'library', 
+                level: 5, 
+                category: 'wisdom',
+                production: '+15% سرعة البحث',
+                description: 'تحوي المعرفة القديمة والحكمة',
+                position: { row: 5, col: 4 }
+            },
+            { 
+                name: '⚒️forgeGold', 
+                type: 'forge', 
+                level: 7, 
+                category: 'crafting',
+                production: '+40 سلعة نادرة / ساعة',
+                description: 'تصنع الأسلحة النادرة والأدوات المتقدمة',
+                position: { row: 5, col: 5 }
+            },
+            { 
+                name: '🐎 إسطبلات الخيول', 
+                type: 'stable', 
+                level: 6, 
+                category: 'cavalry',
+                production: '+20 فرسان نوعية / ساعة',
+                description: 'يدرب الخيول الحربية والفرسان الأسطوريين',
+                position: { row: 2, col: 3 }
+            },
+            { 
+                name: '🏰 بوابة المدينة', 
+                type: 'gate', 
+                level: 8, 
+                category: 'fortification',
+                production: '+100% أمن المدينة',
+                description: 'البوابة الرئيسية المحمية والمدافع عليها',
+                position: { row: 3, col: 2 }
+            }
+        ];
+
+        //初始化游戏
+        function initGame() {
+            // إنشاء المباني
+            generateBuildings();
+            
+            // بدء تحميل اللعبة
+            startLoading();
+        }
+
+        // بدء شاشة التحميل
+        function startLoading() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const resourceBar = document.getElementById('resourceBar');
+            const empireStats = document.getElementById('empireStats');
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 8 + 2; // 2-10% each time
+                if (progress > 100) progress = 100;
+
+                progressBar.style.width = progress + '%';
+                progressText.textContent = Math.floor(progress) + '%';
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        // إخفاء شاشة التحميل
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            
+                            // إظهار شريط الموارد والإحصائيات
+                            setTimeout(() => {
+                                resourceBar.classList.add('show');
+                                empireStats.classList.add('show');
+                            }, 500);
+                            
+                            // إظهار المباني تدريجياً
+                            showBuildings();
+                            
+                            // بدء تحديث الموارد
+                            startResourceUpdate();
+                            startResourceGeneration();
+                            
+                            // إظهار إشعار الترحيب
+                            showNotification('مرحباً بك في إمبراطوريتك! 🏰', 3000);
+                            
+                            gameState.loadingComplete = true;
+                        }, 1000);
+                    }, 1000);
+                }
+            }, 200);
+        }
+
+        // إنشاء المباني
+        function generateBuildings() {
+            const grid = document.getElementById('empireGrid');
+            grid.innerHTML = '';
+
+            buildingTypes.forEach((building, index) => {
+                const buildingElement = document.createElement('div');
+                buildingElement.className = `building ${building.type}`;
+                buildingElement.style.gridRow = building.position.row;
+                buildingElement.style.gridColumn = building.position.col;
+                
+                buildingElement.innerHTML = `
+                    <div class="building-inner">
+                        <div class="building-level">${building.level}</div>
+                        <div class="building-icon">${building.name.split(' ')[0]}</div>
+                        <div class="building-name">${building.name.split(' ').slice(1).join(' ')}</div>
+                        <div class="building-status">${building.production}</div>
+                        <div class="building-info">${building.description}</div>
+                    </div>
+                `;
+
+                // إضافة مستمع الأحداث
+                buildingElement.addEventListener('click', () => {
+                    handleBuildingClick(building, buildingElement);
+                });
+
+                grid.appendChild(buildingElement);
+                gameState.buildings.push({
+                    ...building,
+                    element: buildingElement,
+                    index: index
+                });
+            });
+        }
+
+        // إظهار المباني تدريجياً
+        function showBuildings() {
+            gameState.buildings.forEach((building, index) => {
+                setTimeout(() => {
+                    building.element.classList.add('show');
+                }, index * 200);
+            });
+        }
+
+        // معالجة النقر على المبنى
+        function handleBuildingClick(building, element) {
+            // تأثير النقر
+            element.classList.add('clicked');
+            setTimeout(() => {
+                element.classList.remove('clicked');
+            }, 500);
+
+            // إظهار معلومات المبنى
+            showBuildingInfo(building);
+            
+            // تحديث الموارد
+            if (building.category === 'resource' || building.category === 'military') {
+                generateResourceFromBuilding(building);
+            }
+
+            // إشعارات تفاعلية
+            const messages = {
+                'main': 'تم تعزيز موارد الإمبراطورية! 📈',
+                'resource': `تم جمع ${building.production}! 💰`,
+                'military': `تم تدريب جنود جدد! ⚔️`,
+                'research': 'تم إحراز تقدم في البحث! 🔬',
+                'defense': 'تم تعزيز الدفاعات! 🛡️',
+                'support': 'تم تحسين الإنتاج! 🏭'
+            };
+
+            showNotification(messages[building.category] || 'تم التحديث! ✨', 2000);
+        }
+
+        // إظهار معلومات المبنى
+        function showBuildingInfo(building) {
+            const info = `
+🏛️ ${building.name}
+📊 المستوى: ${building.level}
+🎯 الفئة: ${building.category}
+⚡ الإنتاج: ${building.production}
+📝 الوصف: ${building.description}
+            `;
+            
+            console.log('معلومات المبنى:', info);
+            
+            // يمكن إضافة نافذة منبثقة هنا في المستقبل
+        }
+
+        // إنتاج الموارد من المباني
+        function generateResourceFromBuilding(building) {
+            const buildingMultiplier = building.level * 0.1 + 1; // increases with level
+            
+            switch(building.type) {
+                case 'gold-mine':
+                    gameState.gold += Math.floor(500 * buildingMultiplier);
+                    updateResourceDisplay('gold', gameState.gold);
+                    break;
+                case 'power-station':
+                    gameState.energy = Math.min(100, gameState.energy + 2);
+                    updateResourceDisplay('energy', gameState.energy);
+                    break;
+                case 'barracks':
+                case 'military-camp':
+                    gameState.troops += Math.floor(50 * buildingMultiplier);
+                    updateResourceDisplay('troops', gameState.troops);
+                    break;
+                case 'research-lab':
+                    gameState.gems += Math.floor(1 * buildingMultiplier);
+                    updateResourceDisplay('gems', gameState.gems);
+                    break;
+                case 'warehouse':
+                    gameState.gold += Math.floor(200 * buildingMultiplier);
+                    updateResourceDisplay('gold', gameState.gold);
+                    break;
+            }
+        }
+
+        // تحديث عرض الموارد
+        function updateResourceDisplay(resource, value) {
+            const element = document.getElementById(resource);
+            if (element) {
+                if (resource === 'energy') {
+                    element.textContent = value + '%';
+                } else {
+                    element.textContent = value.toLocaleString();
+                }
+            }
+        }
+
+        // بدء تحديث الموارد التلقائي
+        function startResourceUpdate() {
+            setInterval(() => {
+                if (gameState.loadingComplete) {
+                    // تجديد الطاقة
+                    gameState.energy = Math.min(100, gameState.energy + 0.5);
+                    updateResourceDisplay('energy', Math.floor(gameState.energy));
+                    
+                    // زيادة السكان تدريجياً
+                    if (Math.random() > 0.7) { // 30% chance
+                        gameState.population += Math.floor(Math.random() * 10 + 1);
+                        updateResourceDisplay('population', gameState.population);
+                    }
+                }
+            }, 5000);
+        }
+
+        // بدء إنتاج الموارد التلقائي
+        function startResourceGeneration() {
+            setInterval(() => {
+                if (gameState.loadingComplete) {
+                    // توليد ذهب من المناجم
+                    const goldMines = gameState.buildings.filter(b => b.type === 'gold-mine');
+                    goldMines.forEach(mine => {
+                        gameState.gold += Math.floor(50 * mine.level);
+                    });
+                    updateResourceDisplay('gold', gameState.gold);
+
+                    // توليد جنود من المعسكرات
+                    const barracks = gameState.buildings.filter(b => b.category === 'military');
+                    barracks.forEach(barrack => {
+                        if (Math.random() > 0.5) { // 50% chance
+                            gameState.troops += Math.floor(barrack.level * 0.5);
+                        }
+                    });
+                    updateResourceDisplay('troops', gameState.troops);
+                }
+            }, 10000); // كل 10 ثوان
+        }
+
+        // إظهار الإشعارات
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, duration);
+        }
+
+        // بدء اللعبة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', initGame);
+
+        // إضافة تأثيرات صوتية (يمكن تفعيلها لاحقاً)
+        function playSound(type) {
+            // سيمكن إضافة الأصوات هنا
+            console.log('صوت:', type);
+        }
+
+        // تأثيرات المؤثرات البصرية
+        function addVisualEffect(element, effect) {
+            const effectElement = document.createElement('div');
+            effectElement.className = `effect ${effect}`;
+            element.appendChild(effectElement);
+            
+            setTimeout(() => {
+                effectElement.remove();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
