@@ -1399,6 +1399,9 @@
             
             // بدء تحميل اللعبة
             startLoading();
+            
+            // بدء فحص تأثيرات الإطعام
+            setInterval(checkFeedEffects, 60000); // فحص كل دقيقة
         }
 
         // بدء شاشة التحميل
@@ -1875,6 +1878,9 @@
             energyConsumed: 0,
             researchCompleted: 0,
             battlesWon: 0,
+            // نظام إطعام العمال
+            eggs: 20, // عدد البيض المتاح
+            lastWorkerFed: 0, // آخر عمال تم إطعامهم
             // نظام الزراعة
             crops: {
                 potato: 0,      // البطاطا
@@ -1899,7 +1905,9 @@
                     skill: 'بطل البطاطا',
                     harvestBonus: 2,
                     crop: 'potato',
-                    level: 1
+                    level: 1,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 },
                 {
                     id: 'abraham_son_2',
@@ -1908,7 +1916,9 @@
                     skill: 'بطل البتبري',
                     harvestBonus: 2,
                     crop: 'beans',
-                    level: 1
+                    level: 1,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 },
                 {
                     id: 'abraham_son_3',
@@ -1917,7 +1927,9 @@
                     skill: 'خبير القمح',
                     harvestBonus: 1.5,
                     crop: 'wheat',
-                    level: 2
+                    level: 2,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 },
                 {
                     id: 'abraham_son_4',
@@ -1926,7 +1938,9 @@
                     skill: 'خبير الذرة',
                     harvestBonus: 1.5,
                     crop: 'corn',
-                    level: 2
+                    level: 2,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 },
                 {
                     id: 'abraham_son_5',
@@ -1935,7 +1949,9 @@
                     skill: 'خبير الشعير',
                     harvestBonus: 1.5,
                     crop: 'barley',
-                    level: 2
+                    level: 2,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 },
                 {
                     id: 'abraham_son_6',
@@ -1944,7 +1960,9 @@
                     skill: 'معلم الكريك',
                     harvestBonus: 1.8,
                     crop: 'kreek',
-                    level: 3
+                    level: 3,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 },
                 {
                     id: 'abraham_son_7',
@@ -1953,7 +1971,9 @@
                     skill: 'ساحر الطوريا',
                     harvestBonus: 2.2,
                     crop: 'toria',
-                    level: 4
+                    level: 4,
+                    lastFed: 0,
+                    feedMultiplier: 1
                 }
             ],
             harvestTimers: {}
@@ -2139,6 +2159,64 @@
                         </div>
                     </div>
                     
+                    <div class="feeding-section" style="margin-top: 30px; padding: 20px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 2px solid #ffd700;">
+                        <h3 style="color: #ffd700; text-align: center; margin-bottom: 20px;">
+                            🥚🍳 إطعام العمال بالبيض
+                        </h3>
+                        <p style="color: #ffeb3b; text-align: center; margin-bottom: 15px; font-size: 0.9rem;">
+                            💡 أطعم عمالك بالبيض لزيادة الإنتاج ×1.5 لمدة ساعتين!
+                        </p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; margin-bottom: 15px;">
+                            <span style="color: #f4e4bc; font-weight: 500;">🥚 البيض المتاح:</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: ${gameState.eggs > 0 ? '#ffd700' : '#6c757d'}; font-size: 1.2rem; font-weight: bold;">
+                                    ${gameState.eggs} بيضة
+                                </span>
+                                <button onclick="buyEggs()" style="background: linear-gradient(45deg, #28a745, #20c997); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">
+                                    💰 50 ذهب
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="workers-feeding" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px;">
+                            ${gameState.farmers.map(farmer => {
+                                const now = Date.now();
+                                const lastFed = farmer.lastFed || 0;
+                                const hoursPassed = (now - lastFed) / (1000 * 60 * 60);
+                                const canFeed = hoursPassed >= 2 && gameState.eggs > 0;
+                                const timeLeft = Math.max(0, 2 - hoursPassed);
+                                const hoursLeft = Math.ceil(timeLeft);
+                                
+                                return `
+                                    <div class="worker-feed-card" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(40, 167, 69, 0.1); border-radius: 6px; border: 1px solid #28a745;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 1.1rem;">${farmer.avatar}</span>
+                                            <div>
+                                                <div style="color: #f4e4bc; font-weight: 500; font-size: 0.9rem;">${farmer.name}</div>
+                                                <div style="color: ${farmer.feedMultiplier > 1 ? '#ffd700' : '#6c757d'}; font-size: 0.8rem;">
+                                                    ${farmer.feedMultiplier > 1 ? '🥚 مشبع!' : hoursPassed < 2 ? `⏰ ${hoursLeft}س متبقية` : '🥺 جائع'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="feed-worker-btn" 
+                                            onclick="feedWorker('${farmer.id}')" 
+                                            ${!canFeed ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : 'style="background: linear-gradient(45deg, #ff6b6b, #ffa500); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;"'}
+                                            title="${!gameState.eggs ? 'لا يوجد بيض!' : hoursPassed < 2 ? `في انتظار ${hoursLeft} ساعة` : 'أطعم بالبيض'}">
+                                            ${!gameState.eggs ? '❌' : hoursPassed < 2 ? '⏳' : '🍳'}
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 15px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; text-align: center;">
+                            <p style="color: #ffeb3b; font-size: 0.9rem; margin: 0;">
+                                <strong>⚡ تأثير الإطعام:</strong> ×1.5 إنتاج لمدة ساعتين
+                            </p>
+                        </div>
+                    </div>
+                    
                     <div style="text-align: center; margin-top: 20px; padding: 15px; background: rgba(32, 201, 151, 0.1); border-radius: 8px;">
                         <p style="color: #20c997; font-size: 1rem;">
                             🌱 <strong>نصائح:</strong> كل عامل يحتاج وقتاً مختلفاً للحصاد!
@@ -2235,7 +2313,10 @@
                 });
             }
             
-            const finalReward = Math.floor(bonusReward * bucketBonus) + Math.floor(Math.random() * 20);
+            // حساب تأثير الإطعام
+            const feedBonus = farmer.feedMultiplier || 1;
+            
+            const finalReward = Math.floor(bonusReward * bucketBonus * feedBonus) + Math.floor(Math.random() * 20);
             const totalReward = finalReward;
             
             // إضافة المحصول للمخزون
@@ -2244,16 +2325,23 @@
             // تحديث التوقيت
             gameState.harvestTimers[farmerId] = now;
             
-            // رسائل مضحكة للحصاد (مع ذكر الدلاء)
+            // رسائل مضحكة للحصاد (مع ذكر الدلاء والإطعام)
+            const feedStatus = feedBonus > 1 ? `🥚🍳 مشبع +x${feedBonus.toFixed(1)}!` : '';
+            const bucketStatus = totalBucketsOwned > 0 ? `🪣 دلاء x${bucketBonus.toFixed(2)}` : '';
+            
             const harvestMessages = [
-                `🎉 ${farmer.name} حصد ${totalReward} ${cropSettings[cropType].name}! ${totalBucketsOwned > 0 ? `🪣 مكافأة الدلاء: x${bucketBonus.toFixed(2)}` : ''}`,
-                `🥕 ${farmer.name} قال: "الكريك طيب مع الدلاء!" حصاد ${totalReward}`,
-                `🌱 ${farmer.name}: "الطوريا الجاية أفضل!" +${totalReward}`,
-                `🪣 ${farmer.name} يستخدم دلوذهبي! حصاد ${totalReward} ${cropSettings[cropType].name}`,
-                `👨‍🌾 ${farmer.name}: "الدلاء تزيد الإنتاج!" حصاد ${totalReward}`,
-                `⭐ ${farmer.name} يحصد ${cropSettings[cropType].name} بالدلاء! ${totalReward}`,
-                `💪 ${farmer.name}: "الدلاء قوة!" +${totalReward}`,
-                `🎊 ${farmer.name} يحصد بالدلاء! ${totalReward} ${cropSettings[cropType].name}`
+                `🎉 ${farmer.name} حصد ${totalReward} ${cropSettings[cropType].name}! ${feedStatus} ${bucketStatus}`,
+                `🥕 ${farmer.name} قال: "الكريك طيب مع الدلاء!" حصاد ${totalReward} ${feedStatus}`,
+                `🌱 ${farmer.name}: "الطوريا الجاية أفضل!" +${totalReward} ${feedStatus}`,
+                `🪣 ${farmer.name} يستخدم دلوذهبي! حصاد ${totalReward} ${cropSettings[cropType].name} ${feedStatus}`,
+                `👨‍🌾 ${farmer.name}: "الدلاء تزيد الإنتاج!" حصاد ${totalReward} ${feedStatus}`,
+                `⭐ ${farmer.name} يحصد ${cropSettings[cropType].name} بالدلاء! ${totalReward} ${feedStatus}`,
+                `💪 ${farmer.name}: "الدلاء قوة!" +${totalReward} ${feedStatus}`,
+                `🎊 ${farmer.name} يحصد بالدلاء! ${totalReward} ${cropSettings[cropType].name} ${feedStatus}`,
+                `🍳 ${farmer.name} يطبخ الدجاج! حصاد ${totalReward} ${feedStatus} ${bucketStatus}`,
+                `🌟 ${farmer.name} يشرب الحليب! إنتاج قوي! ${totalReward} ${feedStatus}`,
+                `🔥 ${farmer.name} يشتغل بقوة! ${cropSettings[cropType].name}: ${totalReward} ${feedStatus}`,
+                `⚡ ${farmer.name} مشحون بالبيض! ${cropSettings[cropType].name} ممتاز! ${totalReward} ${feedStatus}`
             ];
             
             const randomMessage = harvestMessages[Math.floor(Math.random() * harvestMessages.length)];
@@ -2264,6 +2352,92 @@
             
             // فحص الإنجازات
             checkFarmingAchievements();
+        }
+
+        // وظيفة إطعام العمال بالبيض
+        function feedWorker(farmerId) {
+            const farmer = gameState.farmers.find(f => f.id === farmerId);
+            if (!farmer) return;
+
+            // فحص وجود البيض
+            if (gameState.eggs <= 0) {
+                showNotification("🥚 لا يوجد بيض لإطعام العمال!", 2000);
+                return;
+            }
+
+            // فحص إذا كان العامل قد تم إطعامه recently
+            const now = Date.now();
+            const hoursPassed = (now - farmer.lastFed) / (1000 * 60 * 60);
+            
+            if (hoursPassed < 2) { // يمكن إطعام كل ساعتين
+                const remainingHours = Math.ceil(2 - hoursPassed);
+                showNotification(`⏰ ${farmer.name} جائع بعد ${remainingHours} ساعة!`, 2000);
+                return;
+            }
+
+            // إطعام العامل
+            gameState.eggs -= 1;
+            farmer.lastFed = now;
+            farmer.feedMultiplier = 1.5; // زيادة 50% في الإنتاج
+
+            // إظهار رسالة نجاح
+            const feedMessages = [
+                `🥚 تم إطعام ${farmer.name} بالبيض! 🥚 إنتاج مضاعف لمدة ساعتين!`,
+                `🍳 ${farmer.name} سعيد بالبيض! 💪 إنتاج x1.5`,
+                `👨‍🌾 ${farmer.name} يقول: "البيض طعمه زكي!" 🌟 إنتاج مضاعف`,
+                `✨ ${farmer.name} أصبح أقوى! 🥚 +${farmer.skill}`,
+                `🎯 ${farmer.name} محمّس الآن! 🥚 إنتاج x1.5`,
+                `🔥 ${farmer.name} يغلي بالطاقة! 🥚 طعام جيد!`
+            ];
+
+            const randomMessage = feedMessages[Math.floor(Math.random() * feedMessages.length)];
+            showNotification(randomMessage, 3000);
+
+            // تحديث الواجهة
+            updateCropsDisplay();
+            
+            // حفظ الحالة
+            saveGameState();
+
+            // إظهار notification للمستوى
+            if (farmer.level < 4) {
+                setTimeout(() => {
+                    showNotification(`⚡ ${farmer.name} يتطور! مستوى ${farmer.level + 1}`, 2000);
+                }, 1000);
+            }
+        }
+
+        // وظيفة شراء البيض
+        function buyEggs() {
+            const eggCost = 50; // تكلفة البيضة الواحدة
+            const maxEggs = 10; // عدد البيض الذي يمكن شراؤه
+            
+            if (gameState.gold >= eggCost && gameState.eggs < 100) {
+                gameState.gold -= eggCost;
+                gameState.eggs += 1;
+                
+                showNotification(`🥚 تم شراء بيضة واحدة بـ ${eggCost} ذهب!`, 2000);
+                updateCropsDisplay();
+                saveGameState();
+            } else if (gameState.gold < eggCost) {
+                showNotification("💰 لا يوجد ذهب كافي! تحتاج 50 ذهب", 2000);
+            } else {
+                showNotification("📦 لديك بيض كافي! (أقصى 100 بيضة)", 2000);
+            }
+        }
+
+        // وظيفة التحقق من انتهاء تأثير الإطعام
+        function checkFeedEffects() {
+            const now = Date.now();
+            gameState.farmers.forEach(farmer => {
+                if (farmer.lastFed > 0) {
+                    const hoursPassed = (now - farmer.lastFed) / (1000 * 60 * 60);
+                    if (hoursPassed >= 2) {
+                        farmer.feedMultiplier = 1; // إزالة تأثير الإطعام
+                        showNotification(`⏰ انتهى تأثير الإطعام لـ ${farmer.name}`, 2000);
+                    }
+                }
+            });
         }
 
         // تحديث عرض المحاصيل
@@ -2283,6 +2457,13 @@
                             <span class="crop-amount">${amount}</span>
                         </div>
                     `).join('')}
+                    <div class="crop-item" style="border-top: 2px solid #ffd700; margin-top: 10px; padding-top: 10px; background: rgba(255, 215, 0, 0.1);">
+                        <div class="crop-info">
+                            <span class="crop-emoji">🥚</span>
+                            <span class="crop-name">البيض (للإطعام)</span>
+                        </div>
+                        <span class="crop-amount" style="color: #ffd700;">${gameState.eggs}</span>
+                    </div>
                 `;
             }
         }
